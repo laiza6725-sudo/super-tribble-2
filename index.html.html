@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>FoodTracker</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #1c1c1e;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            padding-top: 10px;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #48484a;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #c6c6c8;
+            border-radius: 10px;
+            font-size: 16px;
+            -webkit-appearance: none;
+            appearance: none;
+            min-height: 44px;
+            background-color: white;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        button {
+            background: #007aff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 16px;
+            width: 100%;
+            cursor: pointer;
+            min-height: 44px;
+            transition: background-color 0.2s;
+            font-weight: 600;
+        }
+
+        button:active {
+            background-color: #0056cc;
+            transform: scale(0.98);
+        }
+
+        .ingredient-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .ingredient-name {
+            flex: 2;
+        }
+
+        .ingredient-amount {
+            flex: 1;
+        }
+
+        .ingredient-unit {
+            flex: 1;
+            min-width: 100px;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007aff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 12px;
+            padding-right: 35px;
+        }
+
+        .ingredient-price {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007aff;
+        }
+
+        /* Стили для плиток рецептов */
+        .recipes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .recipe-tile {
+            border-radius: 16px;
+            padding: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            height: 160px;
+            position: relative;
+            overflow: hidden;
+            -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+        }
+
+        .recipe-tile:active {
+            transform: scale(0.98);
+        }
+
+        .recipe-tile-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.3;
+            z-index: 0;
+        }
+
+        .recipe-tile-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: space-between;
+        }
+
+        .recipe-tile-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1c1c1e;
+            line-height: 1.2;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .recipe-tile-category {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.7);
+            color: #1c1c1e;
+            align-self: flex-start;
+        }
+
+        .recipe-tile-info {
+            font-size: 12px;
+            color: #48484a;
+            margin-top: auto;
+        }
+
+        .recipe-tile-cost {
+            font-weight: bold;
+            color: #34c759;
+            margin-top: 5px;
+        }
+
+        .recipe-tile-rating {
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        .stars {
+            color: #ffcc00;
+        }
+
+        .delete-tile-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255,255,255,0.8);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 2;
+            font-size: 14px;
+            color: #ff3b30;
+        }
+
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 14px 8px;
+            background: white;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            color: #8e8e93;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            min-height: 44px;
+            -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+        }
+
+        .tab.active {
+            background: white;
+            color: #007aff;
+            border-bottom: 3px solid #007aff;
+        }
+
+        .tab:active {
+            background: #f8f9fa;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .image-upload {
+            text-align: center;
+            border: 2px dashed #c6c6c8;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+            transition: background-color 0.2s;
+        }
+
+        .image-upload:active {
+            background-color: #f8f9fa;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 12px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .photo-btn {
+            background: #5856d6;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .photo-btn:active {
+            background: #4745c4;
+        }
+
+        .camera-icon, .gallery-icon {
+            font-size: 20px;
+        }
+
+        .photo-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .photo-options button {
+            flex: 1;
+        }
+
+        .analysis-result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            background: #f8f9fa;
+        }
+
+        .rating {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .rating.excellent {
+            color: #34c759;
+        }
+
+        .rating.good {
+            color: #ffcc00;
+        }
+
+        .rating.poor {
+            color: #ff3b30;
+        }
+
+        .macro-bar {
+            height: 8px;
+            border-radius: 4px;
+            margin: 5px 0;
+            background: #e5e5ea;
+            overflow: hidden;
+        }
+
+        .macro-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .protein-fill {
+            background: #007aff;
+        }
+
+        .fat-fill {
+            background: #ff9500;
+        }
+
+        .carbs-fill {
+            background: #34c759;
+        }
+
+        .macro-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .recommendations {
+            margin-top: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #007aff;
+        }
+
+        .recommendations h4 {
+            margin-bottom: 5px;
+            color: #48484a;
+        }
+
+        .health-score {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .score-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: white;
+        }
+
+        .score-excellent {
+            background: #34c759;
+        }
+
+        .score-good {
+            background: #ffcc00;
+        }
+
+        .score-poor {
+            background: #ff3b30;
+        }
+
+        /* Модальное окно для просмотра рецепта */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #8e8e93;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #f2f2f7;
+            -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+        }
+
+        .close-modal:active {
+            background: #e5e5ea;
+        }
+
+        .modal-recipe-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .modal-section {
+            margin-bottom: 20px;
+        }
+
+        .modal-section h3 {
+            margin-bottom: 10px;
+            color: #1c1c1e;
+            border-bottom: 1px solid #e5e5ea;
+            padding-bottom: 5px;
+        }
+
+        .instructions-text {
+            white-space: pre-line;
+            line-height: 1.5;
+        }
+
+        .ingredients-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .ingredients-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f2f2f7;
+        }
+
+        .ingredients-list li:last-child {
+            border-bottom: none;
+        }
+
+        .nutrition-facts {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .nutrition-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .nutrition-value {
+            font-weight: bold;
+            font-size: 18px;
+            color: #007aff;
+        }
+
+        .nutrition-label {
+            font-size: 12px;
+            color: #8e8e93;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #8e8e93;
+        }
+
+        .empty-state p {
+            margin-top: 10px;
+        }
+
+        /* Специальные стили для мобильных устройств */
+        @media (max-width: 500px) {
+            body {
+                padding: 15px;
+            }
+            
+            .app-container {
+                padding: 15px;
+            }
+            
+            .tab {
+                padding: 16px 8px;
+                font-size: 15px;
+            }
+            
+            .recipe-tile {
+                height: 170px;
+            }
+            
+            .photo-options {
+                flex-direction: column;
+            }
+            
+            .ingredient-row {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .ingredient-name, .ingredient-amount, .ingredient-unit, .ingredient-price {
+                width: 100%;
+            }
+        }
+
+        /* Улучшение для выпадающих списков на iOS */
+        select {
+            cursor: pointer;
+        }
+
+        /* Анимация появления контента */
+        .tab-content {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .cost-summary {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+        }
+
+        .cost-summary h4 {
+            margin-bottom: 10px;
+            color: #48484a;
+        }
+
+        .cost-breakdown {
+            margin-top: 10px;
+        }
+
+        .cost-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #e5e5ea;
+        }
+
+        .cost-item:last-child {
+            border-bottom: none;
+        }
+
+        .total-cost {
+            font-weight: bold;
+            color: #34c759;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #e5e5ea;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>🥗 FoodTracker</h1>
+            <p>Учет питания и витаминов</p>
+        </div>
+
+        <div class="tab-container">
+            <button class="tab active" data-tab="add">Добавить</button>
+            <button class="tab" data-tab="recipes">Рецепты</button>
+            <button class="tab" data-tab="stats">Статистика</button>
+            <button class="tab" data-tab="analysis">Анализ</button>
+        </div>
+
+        <div id="add-tab" class="tab-content active">
+            <div class="card">
+                <h2>Добавить рецепт</h2>
+                <div class="input-group">
+                    <label>Название рецепта</label>
+                    <input type="text" id="recipeName" placeholder="Например: Гречневая каша с овощами">
+                </div>
+                
+                <div class="input-group">
+                    <label>Категория</label>
+                    <select id="category">
+                        <option value="breakfast">Завтрак</option>
+                        <option value="lunch">Обед</option>
+                        <option value="dinner">Ужин</option>
+                        <option value="snack">Перекус</option>
+                        <option value="dessert">Десерт</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Фото рецепта</label>
+                    <div class="image-upload" id="imageUpload">
+                        <p>📷 Нажмите, чтобы добавить фото</p>
+                        <img id="imagePreview" class="image-preview" alt="Предпросмотр">
+                    </div>
+                    <input type="file" id="imageInput" accept="image/*" capture="environment" style="display: none;">
+                    <div class="photo-options">
+                        <button type="button" class="photo-btn" id="cameraBtn">
+                            <span class="camera-icon">📷</span> Сделать фото
+                        </button>
+                        <button type="button" class="photo-btn" id="galleryBtn">
+                            <span class="gallery-icon">🖼️</span> Выбрать из галереи
+                        </button>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Ингредиенты (укажите цену за 100г/мл)</label>
+                    <div id="ingredients">
+                        <div class="ingredient-row">
+                            <input type="text" placeholder="Продукт" class="ingredient-name">
+                            <input type="number" placeholder="Количество" class="ingredient-amount" value="100">
+                            <select class="ingredient-unit">
+                                <option value="g">г</option>
+                                <option value="ml">мл</option>
+                                <option value="tsp">ч.л.</option>
+                                <option value="tbsp">ст.л.</option>
+                                <option value="cup">стакан</option>
+                                <option value="piece">шт.</option>
+                            </select>
+                            <input type="number" placeholder="Цена за 100г/мл" class="ingredient-price" step="0.01" min="0">
+                        </div>
+                    </div>
+                    <button type="button" onclick="addIngredient()" style="background: #34c759; margin-top: 10px;">+ Добавить ингредиент</button>
+                </div>
+
+                <div class="input-group">
+                    <label>Способ приготовления</label>
+                    <textarea id="instructions" placeholder="Опишите шаги приготовления блюда..."></textarea>
+                </div>
+
+                <button type="button" onclick="addRecipe()">Сохранить рецепт</button>
+            </div>
+        </div>
+
+        <div id="recipes-tab" class="tab-content">
+            <div class="card">
+                <h2>Мои рецепты</h2>
+                <div id="recipesList" class="recipes-grid">
+                    <!-- Плитки рецептов будут здесь -->
+                </div>
+            </div>
+        </div>
+
+        <div id="stats-tab" class="tab-content">
+            <div class="card">
+                <h2>Статистика питания</h2>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalCalories">0</div>
+                        <div>Калории</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalIron">0</div>
+                        <div>Железо (мг)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalProtein">0</div>
+                        <div>Белок (г)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalCarbs">0</div>
+                        <div>Углеводы (г)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Продукты в базе</h2>
+                <p>Используйте эти названия при добавлении ингредиентов:</p>
+                <ul id="foodList" style="margin-top: 10px; padding-left: 20px;">
+                    <!-- Список будет заполнен JavaScript -->
+                </ul>
+            </div>
+        </div>
+
+        <div id="analysis-tab" class="tab-content">
+            <div class="card">
+                <h2>Анализ полезности рецептов</h2>
+                <p>Выберите рецепт для анализа его питательной ценности:</p>
+                
+                <div class="input-group">
+                    <label>Рецепт для анализа</label>
+                    <select id="analysisRecipe">
+                        <option value="">-- Выберите рецепт --</option>
+                    </select>
+                </div>
+                
+                <div id="analysisResult" class="analysis-result" style="display: none;">
+                    <div class="health-score">
+                        <div id="scoreCircle" class="score-circle">0</div>
+                        <div>
+                            <h3 id="healthRating">Оценка полезности</h3>
+                            <p id="healthDescription">Описание оценки</p>
+                        </div>
+                    </div>
+                    
+                    <div class="recipe-rating-stars">
+                        <h4>Оценка полезности:</h4>
+                        <div id="starRating" class="stars" style="font-size: 24px; text-align: center; margin: 10px 0;"></div>
+                    </div>
+                    
+                    <h4>Соотношение БЖУ:</h4>
+                    <div class="macro-bar">
+                        <div id="proteinBar" class="macro-fill protein-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="macro-labels">
+                        <span>Белки: <span id="proteinPercent">0%</span></span>
+                        <span id="proteinWeight">0г</span>
+                    </div>
+                    
+                    <div class="macro-bar">
+                        <div id="fatBar" class="macro-fill fat-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="macro-labels">
+                        <span>Жиры: <span id="fatPercent">0%</span></span>
+                        <span id="fatWeight">0г</span>
+                    </div>
+                    
+                    <div class="macro-bar">
+                        <div id="carbsBar" class="macro-fill carbs-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="macro-labels">
+                        <span>Углеводы: <span id="carbsPercent">0%</span></span>
+                        <span id="carbsWeight">0г</span>
+                    </div>
+                    
+                    <div class="recommendations">
+                        <h4>Рекомендации:</h4>
+                        <div id="recommendationsList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно для просмотра рецепта -->
+        <div id="recipeModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+                <div id="modalContent">
+                    <!-- Содержимое будет заполнено JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // База данных продуктов (на 100г)
+        const foodDatabase = {
+            'говядина': { calories: 250, iron: 2.6, protein: 26, carbs: 0, fat: 15 },
+            'шпинат': { calories: 23, iron: 2.7, protein: 2.9, carbs: 3.6, fat: 0.4 },
+            'чечевица': { calories: 116, iron: 3.3, protein: 9, carbs: 20, fat: 0.4 },
+            'курица': { calories: 165, iron: 1.0, protein: 31, carbs: 0, fat: 3.6 },
+            'яблоко': { calories: 52, iron: 0.1, protein: 0.3, carbs: 14, fat: 0.2 },
+            'гречка': { calories: 343, iron: 2.2, protein: 13, carbs: 72, fat: 3.4 },
+            'яйцо': { calories: 155, iron: 1.2, protein: 13, carbs: 1.1, fat: 11 },
+            'тунец': { calories: 184, iron: 1.0, protein: 30, carbs: 0, fat: 6 },
+            'брокколи': { calories: 34, iron: 0.7, protein: 2.8, carbs: 7, fat: 0.4 },
+            'гранат': { calories: 83, iron: 0.3, protein: 1.7, carbs: 19, fat: 1.2 },
+            'печень': { calories: 135, iron: 6.5, protein: 20, carbs: 3, fat: 3.7 },
+            'фасоль': { calories: 127, iron: 2.5, protein: 9, carbs: 22, fat: 0.5 },
+            'морковь': { calories: 41, iron: 0.3, protein: 0.9, carbs: 10, fat: 0.2 },
+            'рис': { calories: 130, iron: 0.4, protein: 2.7, carbs: 28, fat: 0.3 },
+            'творог': { calories: 98, iron: 0.1, protein: 11, carbs: 3, fat: 4.3 },
+            'молоко': { calories: 42, iron: 0.0, protein: 3.4, carbs: 5, fat: 1 },
+            'банан': { calories: 89, iron: 0.3, protein: 1.1, carbs: 23, fat: 0.3 },
+            'авокадо': { calories: 160, iron: 0.6, protein: 2, carbs: 9, fat: 15 },
+            'лосось': { calories: 208, iron: 0.3, protein: 20, carbs: 0, fat: 13 },
+            'сыр': { calories: 402, iron: 0.7, protein: 25, carbs: 1.3, fat: 33 },
+            'оливковое масло': { calories: 884, iron: 0.6, protein: 0, carbs: 0, fat: 100 },
+            'сахар': { calories: 387, iron: 0.1, protein: 0, carbs: 100, fat: 0 },
+            'масло сливочное': { calories: 717, iron: 0.2, protein: 0.9, carbs: 0.1, fat: 81 },
+            'орехи грецкие': { calories: 654, iron: 2.9, protein: 15, carbs: 14, fat: 65 },
+            'овсянка': { calories: 389, iron: 4.7, protein: 17, carbs: 66, fat: 7 },
+            'вода': { calories: 0, iron: 0, protein: 0, carbs: 0, fat: 0 },
+            'соль': { calories: 0, iron: 0.1, protein: 0, carbs: 0, fat: 0 },
+            'перец': { calories: 251, iron: 7.8, protein: 10.4, carbs: 64, fat: 3.3 },
+            'мука': { calories: 364, iron: 1.2, protein: 10, carbs: 76, fat: 1 }
+        };
+
+        // Коэффициенты преобразования единиц измерения в граммы
+        const unitConversions = {
+            'g': 1,        // граммы
+            'ml': 1,       // миллилитры (для воды и жидкостей с плотностью ~1 г/мл)
+            'tsp': 5,      // чайная ложка (~5 г)
+            'tbsp': 15,    // столовая ложка (~15 г)
+            'cup': 240,    // стакан (~240 г)
+            'piece': 1     // штука (зависит от продукта, используем как есть)
+        };
+
+        // Цвета для плиток рецептов
+        const tileColors = [
+            'linear-gradient(135deg, #FF9AA2, #FFB7B2)',
+            'linear-gradient(135deg, #FFDAC1, #E2F0CB)',
+            'linear-gradient(135deg, #B5EAD7, #C7CEEA)',
+            'linear-gradient(135deg, #E2F0CB, #B5EAD7)',
+            'linear-gradient(135deg, #C7CEEA, #FFDAC1)',
+            'linear-gradient(135deg, #FFB7B2, #FF9AA2)',
+            'linear-gradient(135deg, #B5EAD7, #E2F0CB)',
+            'linear-gradient(135deg, #FFDAC1, #FFB7B2)',
+            'linear-gradient(135deg, #C7CEEA, #B5EAD7)',
+            'linear-gradient(135deg, #E2F0CB, #C7CEEA)'
+        ];
+
+        let recipes = JSON.parse(localStorage.getItem('recipes')) || [];
+        let currentImageData = null;
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            // Назначаем обработчики для вкладок
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    showTab(tabName);
+                });
+            });
+            
+            // Обработчики для загрузки изображений
+            document.getElementById('imageUpload').addEventListener('click', function() {
+                document.getElementById('imageInput').click();
+            });
+            
+            document.getElementById('imageInput').addEventListener('change', handleImageSelect);
+            
+            document.getElementById('cameraBtn').addEventListener('click', function() {
+                document.getElementById('imageInput').setAttribute('capture', 'environment');
+                document.getElementById('imageInput').click();
+            });
+            
+            document.getElementById('galleryBtn').addEventListener('click', function() {
+                document.getElementById('imageInput').removeAttribute('capture');
+                document.getElementById('imageInput').click();
+            });
+            
+            // Показываем начальную вкладку
+            showTab('add');
+            
+            // Инициализируем приложение
+            updateRecipesList();
+            calculateNutrition();
+            updateFoodList();
+        });
+
+        function handleImageSelect(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentImageData = e.target.result;
+                    document.getElementById('imagePreview').src = currentImageData;
+                    document.getElementById('imagePreview').style.display = 'block';
+                    document.getElementById('imageUpload').querySelector('p').textContent = '🖼️ Фото добавлено';
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        }
+
+        function showTab(tabName) {
+            // Скрыть все вкладки
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Показать выбранную вкладку
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Обновить активные кнопки вкладок
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+            
+            // Если открываем вкладку рецептов, обновляем список
+            if (tabName === 'recipes') {
+                updateRecipesList();
+            } else if (tabName === 'analysis') {
+                updateAnalysisRecipeList();
+            }
+        }
+
+        function updateAnalysisRecipeList() {
+            const select = document.getElementById('analysisRecipe');
+            select.innerHTML = '<option value="">-- Выберите рецепт --</option>';
+            
+            recipes.forEach(recipe => {
+                const option = document.createElement('option');
+                option.value = recipe.id;
+                option.textContent = recipe.name;
+                select.appendChild(option);
+            });
+            
+            // Добавляем обработчик изменения выбора
+            select.onchange = function() {
+                analyzeSelectedRecipe();
+            };
+        }
+
+        function analyzeSelectedRecipe() {
+            const recipeId = parseInt(document.getElementById('analysisRecipe').value);
+            if (!recipeId) {
+                document.getElementById('analysisResult').style.display = 'none';
+                return;
+            }
+            
+            const recipe = recipes.find(r => r.id === recipeId);
+            if (recipe) {
+                analyzeRecipe(recipe);
+            }
+        }
+
+        function analyzeRecipe(recipe) {
+            let totalProtein = 0;
+            let totalFat = 0;
+            let totalCarbs = 0;
+            let totalIron = 0;
+            let totalCalories = 0;
+
+            recipe.ingredients.forEach(ing => {
+                const food = foodDatabase[ing.name];
+                if (food) {
+                    // Конвертируем количество в граммы
+                    const weightInGrams = ing.amount * unitConversions[ing.unit];
+                    const ratio = weightInGrams / 100;
+                    totalProtein += food.protein * ratio;
+                    totalFat += food.fat * ratio;
+                    totalCarbs += food.carbs * ratio;
+                    totalIron += food.iron * ratio;
+                    totalCalories += food.calories * ratio;
+                }
+            });
+
+            // Рассчитываем проценты БЖУ от общей калорийности
+            const proteinCalories = totalProtein * 4;
+            const fatCalories = totalFat * 9;
+            const carbsCalories = totalCarbs * 4;
+            const totalMacroCalories = proteinCalories + fatCalories + carbsCalories;
+            
+            // Проценты от общей калорийности
+            const proteinPercent = totalMacroCalories > 0 ? (proteinCalories / totalMacroCalories) * 100 : 0;
+            const fatPercent = totalMacroCalories > 0 ? (fatCalories / totalMacroCalories) * 100 : 0;
+            const carbsPercent = totalMacroCalories > 0 ? (carbsCalories / totalMacroCalories) * 100 : 0;
+
+            // Оценка полезности
+            let score = 100;
+            let recommendations = [];
+
+            // Оцениваем баланс БЖУ
+            // Идеальное соотношение для сбалансированного питания: Б:15-25%, Ж:25-35%, У:45-65%
+            if (proteinPercent < 15) {
+                score -= 15;
+                recommendations.push("Добавьте больше белковых продуктов (мясо, рыба, бобовые)");
+            } else if (proteinPercent > 30) {
+                score -= 10;
+                recommendations.push("Слишком много белка, добавьте больше овощей и углеводов");
+            }
+
+            if (fatPercent < 20) {
+                score -= 10;
+                recommendations.push("Добавьте полезные жиры (авокадо, орехи, оливковое масло)");
+            } else if (fatPercent > 40) {
+                score -= 15;
+                recommendations.push("Слишком много жиров, уменьшите количество жирных продуктов");
+            }
+
+            if (carbsPercent < 45) {
+                score -= 10;
+                recommendations.push("Добавьте больше сложных углеводов (крупы, овощи)");
+            } else if (carbsPercent > 65) {
+                score -= 15;
+                recommendations.push("Слишком много углеводов, сбалансируйте белками и жирами");
+            }
+
+            // Оцениваем содержание железа
+            if (totalIron < 5) {
+                score -= 10;
+                recommendations.push("Добавьте продукты, богатые железом (печень, шпинат, чечевица)");
+            } else if (totalIron > 20) {
+                score -= 5;
+                recommendations.push("Высокое содержание железа, что хорошо для профилактики анемии");
+            }
+
+            // Оцениваем разнообразие ингредиентов
+            if (recipe.ingredients.length < 3) {
+                score -= 10;
+                recommendations.push("Добавьте больше ингредиентов для разнообразия питательных веществ");
+            }
+
+            // Ограничиваем оценку от 0 до 100
+            score = Math.max(0, Math.min(100, score));
+
+            // Определяем рейтинг
+            let rating, description, scoreClass;
+            if (score >= 80) {
+                rating = "Отлично";
+                description = "Сбалансированное и полезное блюдо";
+                scoreClass = "score-excellent";
+            } else if (score >= 60) {
+                rating = "Хорошо";
+                description = "Неплохой баланс, есть небольшие рекомендации";
+                scoreClass = "score-good";
+            } else {
+                rating = "Нужно улучшить";
+                description = "Рекомендуется пересмотреть состав блюда";
+                scoreClass = "score-poor";
+            }
+
+            // Создаем звездный рейтинг
+            const starRating = getStarRating(score);
+            document.getElementById('starRating').innerHTML = starRating;
+
+            // Обновляем интерфейс
+            document.getElementById('analysisResult').style.display = 'block';
+            document.getElementById('scoreCircle').textContent = Math.round(score);
+            document.getElementById('scoreCircle').className = `score-circle ${scoreClass}`;
+            document.getElementById('healthRating').textContent = rating;
+            document.getElementById('healthDescription').textContent = description;
+            
+            // Обновляем бары БЖУ
+            document.getElementById('proteinBar').style.width = `${proteinPercent}%`;
+            document.getElementById('fatBar').style.width = `${fatPercent}%`;
+            document.getElementById('carbsBar').style.width = `${carbsPercent}%`;
+            
+            // Обновляем проценты и вес
+            document.getElementById('proteinPercent').textContent = `${proteinPercent.toFixed(1)}%`;
+            document.getElementById('proteinWeight').textContent = `${totalProtein.toFixed(1)}г`;
+            document.getElementById('fatPercent').textContent = `${fatPercent.toFixed(1)}%`;
+            document.getElementById('fatWeight').textContent = `${totalFat.toFixed(1)}г`;
+            document.getElementById('carbsPercent').textContent = `${carbsPercent.toFixed(1)}%`;
+            document.getElementById('carbsWeight').textContent = `${totalCarbs.toFixed(1)}г`;
+            
+            // Обновляем рекомендации
+            const recommendationsList = document.getElementById('recommendationsList');
+            recommendationsList.innerHTML = '';
+            if (recommendations.length > 0) {
+                recommendations.forEach(rec => {
+                    const p = document.createElement('p');
+                    p.textContent = `• ${rec}`;
+                    recommendationsList.appendChild(p);
+                });
+            } else {
+                const p = document.createElement('p');
+                p.textContent = "Отличное соотношение питательных веществ!";
+                recommendationsList.appendChild(p);
+            }
+        }
+
+        function getStarRating(score) {
+            // Преобразуем оценку 0-100 в звезды 1-5
+            let stars = '';
+            const starCount = Math.max(1, Math.min(5, Math.round(score / 20)));
+            
+            for (let i = 0; i < starCount; i++) {
+                stars += '⭐';
+            }
+            
+            return stars;
+        }
+
+        function addIngredient() {
+            const container = document.getElementById('ingredients');
+            const newRow = document.createElement('div');
+            newRow.className = 'ingredient-row';
+            newRow.innerHTML = `
+                <input type="text" placeholder="Продукт" class="ingredient-name">
+                <input type="number" placeholder="Количество" class="ingredient-amount" value="100">
+                <select class="ingredient-unit">
+                    <option value="g">г</option>
+                    <option value="ml">мл</option>
+                    <option value="tsp">ч.л.</option>
+                    <option value="tbsp">ст.л.</option>
+                    <option value="cup">стакан</option>
+                    <option value="piece">шт.</option>
+                </select>
+                <input type="number" placeholder="Цена за 100г/мл" class="ingredient-price" step="0.01" min="0">
+            `;
+            container.appendChild(newRow);
+        }
+
+        function addRecipe() {
+            const name = document.getElementById('recipeName').value;
+            const category = document.getElementById('category').value;
+            const instructions = document.getElementById('instructions').value;
+            const ingredients = [];
+            
+            document.querySelectorAll('.ingredient-row').forEach(row => {
+                const name = row.querySelector('.ingredient-name').value.toLowerCase();
+                const amount = row.querySelector('.ingredient-amount').value;
+                const unit = row.querySelector('.ingredient-unit').value;
+                const price = row.querySelector('.ingredient-price').value;
+                if (name && amount) ingredients.push({ 
+                    name, 
+                    amount: parseFloat(amount), 
+                    unit,
+                    price: price ? parseFloat(price) : 0
+                });
+            });
+
+            if (!name) {
+                alert('Введите название рецепта');
+                return;
+            }
+            
+            if (ingredients.length === 0) {
+                alert('Добавьте хотя бы один ингредиент');
+                return;
+            }
+
+            const recipe = { 
+                id: Date.now(), // Уникальный ID для удаления
+                name, 
+                category, 
+                ingredients,
+                instructions,
+                image: currentImageData // Сохраняем изображение
+            };
+            
+            recipes.push(recipe);
+            localStorage.setItem('recipes', JSON.stringify(recipes));
+            
+            // Очистить форму
+            document.getElementById('recipeName').value = '';
+            document.getElementById('instructions').value = '';
+            document.getElementById('ingredients').innerHTML = `
+                <div class="ingredient-row">
+                    <input type="text" placeholder="Продукт" class="ingredient-name">
+                    <input type="number" placeholder="Количество" class="ingredient-amount" value="100">
+                    <select class="ingredient-unit">
+                        <option value="g">г</option>
+                        <option value="ml">мл</option>
+                        <option value="tsp">ч.л.</option>
+                        <option value="tbsp">ст.л.</option>
+                        <option value="cup">стакан</option>
+                        <option value="piece">шт.</option>
+                    </select>
+                    <input type="number" placeholder="Цена за 100г/мл" class="ingredient-price" step="0.01" min="0">
+                </div>
+            `;
+            // Сбросить изображение
+            currentImageData = null;
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('imageUpload').querySelector('p').textContent = '📷 Нажмите, чтобы добавить фото';
+            document.getElementById('imageInput').value = '';
+            
+            // Показать вкладку с рецептами
+            showTab('recipes');
+            calculateNutrition();
+        }
+
+        function calculateRecipeCost(recipe) {
+            let totalCost = 0;
+            let costBreakdown = [];
+            
+            recipe.ingredients.forEach(ing => {
+                if (ing.price && ing.price > 0) {
+                    // Конвертируем количество в граммы
+                    const weightInGrams = ing.amount * unitConversions[ing.unit];
+                    // Рассчитываем стоимость ингредиента
+                    const ingredientCost = (weightInGrams * ing.price) / 100;
+                    totalCost += ingredientCost;
+                    
+                    costBreakdown.push({
+                        name: ing.name,
+                        cost: ingredientCost
+                    });
+                }
+            });
+            
+            return {
+                total: totalCost,
+                breakdown: costBreakdown
+            };
+        }
+
+        function deleteRecipe(id) {
+            if (confirm('Удалить этот рецепт?')) {
+                recipes = recipes.filter(recipe => recipe.id !== id);
+                localStorage.setItem('recipes', JSON.stringify(recipes));
+                updateRecipesList();
+                calculateNutrition();
+            }
+        }
+
+        function viewRecipe(id) {
+            const recipe = recipes.find(recipe => recipe.id === id);
+            if (recipe) {
+                openRecipeModal(recipe);
+            }
+        }
+
+        function openRecipeModal(recipe) {
+            // Рассчитываем питательную ценность для этого рецепта
+            let totalProtein = 0;
+            let totalFat = 0;
+            let totalCarbs = 0;
+            let totalIron = 0;
+            let totalCalories = 0;
+
+            recipe.ingredients.forEach(ing => {
+                const food = foodDatabase[ing.name];
+                if (food) {
+                    // Конвертируем количество в граммы
+                    const weightInGrams = ing.amount * unitConversions[ing.unit];
+                    const ratio = weightInGrams / 100;
+                    totalProtein += food.protein * ratio;
+                    totalFat += food.fat * ratio;
+                    totalCarbs += food.carbs * ratio;
+                    totalIron += food.iron * ratio;
+                    totalCalories += food.calories * ratio;
+                }
+            });
+
+            // Рассчитываем стоимость рецепта
+            const costData = calculateRecipeCost(recipe);
+            
+            // Рассчитываем оценку полезности
+            const score = calculateRecipeScore(recipe);
+            const starRating = getStarRating(score);
+
+            // Формируем содержимое модального окна
+            const modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = `
+                <h2>${recipe.name}</h2>
+                <div class="category-tag">${getCategoryName(recipe.category)}</div>
+                
+                ${recipe.image ? `<img src="${recipe.image}" class="modal-recipe-image" alt="${recipe.name}">` : ''}
+                
+                <div class="modal-section">
+                    <h3>Ингредиенты</h3>
+                    <ul class="ingredients-list">
+                        ${recipe.ingredients.map(ing => {
+                            const unitName = getUnitName(ing.unit);
+                            const priceInfo = ing.price && ing.price > 0 ? 
+                                ` - ${((ing.amount * unitConversions[ing.unit] * ing.price) / 100).toFixed(2)} руб` : 
+                                '';
+                            return `<li>${ing.name} - ${ing.amount} ${unitName}${priceInfo}</li>`;
+                        }).join('')}
+                    </ul>
+                </div>
+                
+                <div class="modal-section">
+                    <h3>Стоимость рецепта</h3>
+                    <div class="cost-summary">
+                        <div class="cost-breakdown">
+                            ${costData.breakdown.map(item => `
+                                <div class="cost-item">
+                                    <span>${item.name}</span>
+                                    <span>${item.cost.toFixed(2)} руб</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="total-cost">
+                            <span>Общая стоимость:</span>
+                            <span>${costData.total.toFixed(2)} руб</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-section">
+                    <h3>Оценка полезности</h3>
+                    <div style="text-align: center; margin: 15px 0;">
+                        <div class="stars" style="font-size: 28px;">${starRating}</div>
+                        <p style="margin-top: 10px; color: #8e8e93;">${getHealthDescription(score)}</p>
+                    </div>
+                </div>
+                
+                <div class="modal-section">
+                    <h3>Способ приготовления</h3>
+                    <div class="instructions-text">${recipe.instructions || 'Способ приготовления не указан.'}</div>
+                </div>
+                
+                <div class="modal-section">
+                    <h3>Пищевая ценность (на порцию)</h3>
+                    <div class="nutrition-facts">
+                        <div class="nutrition-item">
+                            <div class="nutrition-value">${Math.round(totalCalories)}</div>
+                            <div class="nutrition-label">Калории</div>
+                        </div>
+                        <div class="nutrition-item">
+                            <div class="nutrition-value">${totalProtein.toFixed(1)}</div>
+                            <div class="nutrition-label">Белки (г)</div>
+                        </div>
+                        <div class="nutrition-item">
+                            <div class="nutrition-value">${totalFat.toFixed(1)}</div>
+                            <div class="nutrition-label">Жиры (г)</div>
+                        </div>
+                        <div class="nutrition-item">
+                            <div class="nutrition-value">${totalCarbs.toFixed(1)}</div>
+                            <div class="nutrition-label">Углеводы (г)</div>
+                        </div>
+                        <div class="nutrition-item">
+                            <div class="nutrition-value">${totalIron.toFixed(2)}</div>
+                            <div class="nutrition-label">Железо (мг)</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Показываем модальное окно
+            document.getElementById('recipeModal').style.display = 'block';
+        }
+
+        function calculateRecipeScore(recipe) {
+            let totalProtein = 0;
+            let totalFat = 0;
+            let totalCarbs = 0;
+            let totalIron = 0;
+            let totalCalories = 0;
+
+            recipe.ingredients.forEach(ing => {
+                const food = foodDatabase[ing.name];
+                if (food) {
+                    // Конвертируем количество в граммы
+                    const weightInGrams = ing.amount * unitConversions[ing.unit];
+                    const ratio = weightInGrams / 100;
+                    totalProtein += food.protein * ratio;
+                    totalFat += food.fat * ratio;
+                    totalCarbs += food.carbs * ratio;
+                    totalIron += food.iron * ratio;
+                    totalCalories += food.calories * ratio;
+                }
+            });
+
+            // Рассчитываем проценты БЖУ от общей калорийности
+            const proteinCalories = totalProtein * 4;
+            const fatCalories = totalFat * 9;
+            const carbsCalories = totalCarbs * 4;
+            const totalMacroCalories = proteinCalories + fatCalories + carbsCalories;
+            
+            // Проценты от общей калорийности
+            const proteinPercent = totalMacroCalories > 0 ? (proteinCalories / totalMacroCalories) * 100 : 0;
+            const fatPercent = totalMacroCalories > 0 ? (fatCalories / totalMacroCalories) * 100 : 0;
+            const carbsPercent = totalMacroCalories > 0 ? (carbsCalories / totalMacroCalories) * 100 : 0;
+
+            // Оценка полезности
+            let score = 100;
+
+            // Оцениваем баланс БЖУ
+            if (proteinPercent < 15) score -= 15;
+            else if (proteinPercent > 30) score -= 10;
+
+            if (fatPercent < 20) score -= 10;
+            else if (fatPercent > 40) score -= 15;
+
+            if (carbsPercent < 45) score -= 10;
+            else if (carbsPercent > 65) score -= 15;
+
+            // Оцениваем содержание железа
+            if (totalIron < 5) score -= 10;
+            else if (totalIron > 20) score -= 5;
+
+            // Оцениваем разнообразие ингредиентов
+            if (recipe.ingredients.length < 3) score -= 10;
+
+            // Ограничиваем оценку от 0 до 100
+            return Math.max(0, Math.min(100, score));
+        }
+
+        function getHealthDescription(score) {
+            if (score >= 80) return "Очень полезно";
+            if (score >= 60) return "Полезно";
+            if (score >= 40) return "Умеренно полезно";
+            if (score >= 20) return "Мало полезно";
+            return "Очень вредно";
+        }
+
+        function closeModal() {
+            document.getElementById('recipeModal').style.display = 'none';
+        }
+
+        // Закрытие модального окна при клике вне его
+        window.onclick = function(event) {
+            const modal = document.getElementById('recipeModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        function calculateNutrition() {
+            let totalCalories = 0;
+            let totalIron = 0;
+            let totalProtein = 0;
+            let totalCarbs = 0;
+
+            recipes.forEach(recipe => {
+                recipe.ingredients.forEach(ing => {
+                    const food = foodDatabase[ing.name];
+                    if (food) {
+                        // Конвертируем количество в граммы
+                        const weightInGrams = ing.amount * unitConversions[ing.unit];
+                        const ratio = weightInGrams / 100;
+                        totalCalories += food.calories * ratio;
+                        totalIron += food.iron * ratio;
+                        totalProtein += food.protein * ratio;
+                        totalCarbs += food.carbs * ratio;
+                    }
+                });
+            });
+
+            document.getElementById('totalCalories').textContent = Math.round(totalCalories);
+            document.getElementById('totalIron').textContent = totalIron.toFixed(2);
+            document.getElementById('totalProtein').textContent = totalProtein.toFixed(1);
+            document.getElementById('totalCarbs').textContent = totalCarbs.toFixed(1);
+        }
+
+        function updateRecipesList() {
+            const container = document.getElementById('recipesList');
+            container.innerHTML = '';
+            
+            if (recipes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>🥗 Рецептов пока нет</h3>
+                        <p>Добавьте свой первый рецепт!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            recipes.forEach((recipe, index) => {
+                // Выбираем цвет для плитки (циклично из массива цветов)
+                const colorIndex = index % tileColors.length;
+                const tileColor = tileColors[colorIndex];
+                
+                // Рассчитываем стоимость рецепта
+                const costData = calculateRecipeCost(recipe);
+                
+                // Рассчитываем оценку полезности
+                const score = calculateRecipeScore(recipe);
+                const starRating = getStarRating(score);
+                
+                const tile = document.createElement('div');
+                tile.className = 'recipe-tile';
+                tile.style.background = tileColor;
+                
+                // Создаем содержимое плитки
+                tile.innerHTML = `
+                    ${recipe.image ? `<img src="${recipe.image}" class="recipe-tile-image" alt="${recipe.name}">` : ''}
+                    <div class="recipe-tile-content">
+                        <div>
+                            <div class="recipe-tile-category">${getCategoryName(recipe.category)}</div>
+                            <div class="recipe-tile-title">${recipe.name}</div>
+                        </div>
+                        <div class="recipe-tile-info">
+                            <div class="recipe-tile-rating">
+                                <span class="stars">${starRating}</span>
+                            </div>
+                            <div class="recipe-tile-cost">${costData.total > 0 ? costData.total.toFixed(2) + ' руб' : 'Цена не указана'}</div>
+                            <div>${recipe.ingredients.length} ингредиентов</div>
+                        </div>
+                    </div>
+                    <button class="delete-tile-btn" onclick="event.stopPropagation(); deleteRecipe(${recipe.id})">✕</button>
+                `;
+                
+                // Добавляем обработчик клика на плитку
+                tile.addEventListener('click', function() {
+                    viewRecipe(recipe.id);
+                });
+                
+                container.appendChild(tile);
+            });
+        }
+
+        function updateFoodList() {
+            const container = document.getElementById('foodList');
+            container.innerHTML = '';
+            
+            Object.keys(foodDatabase).forEach(food => {
+                const li = document.createElement('li');
+                li.textContent = food;
+                container.appendChild(li);
+            });
+        }
+
+        function getCategoryName(category) {
+            const names = {
+                'breakfast': 'Завтрак',
+                'lunch': 'Обед',
+                'dinner': 'Ужин',
+                'snack': 'Перекус',
+                'dessert': 'Десерт'
+            };
+            return names[category];
+        }
+
+        function getUnitName(unit) {
+            const names = {
+                'g': 'г',
+                'ml': 'мл',
+                'tsp': 'ч.л.',
+                'tbsp': 'ст.л.',
+                'cup': 'стакан',
+                'piece': 'шт.'
+            };
+            return names[unit];
+        }
+    </script>
+</body>
+</html>
